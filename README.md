@@ -19,4 +19,4 @@ The checker uses the marketplace's server-rendered availability table and does n
    - `TELEGRAM_CHAT_ID`
 4. Run **Check bib marketplace** manually once from the Actions tab.
 
-The scheduled check runs every 20 minutes from 08:00 through 00:40 in the `Europe/Madrid` timezone. GitHub may start scheduled workflows a few minutes late. The workflow commits only the current listing IDs to `state.json`, so an unchanged listing does not repeatedly notify you.
+The scheduled check runs every 20 minutes from 08:00 through 00:40, plus one final check at 01:00, in the `Europe/Madrid` timezone. GitHub may start scheduled workflows a few minutes late. The workflow commits only the current listing IDs to `state.json`, so an unchanged listing does not repeatedly notify you.

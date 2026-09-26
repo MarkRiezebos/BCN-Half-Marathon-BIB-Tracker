@@ -6,6 +6,8 @@ on:
       timezone: "Europe/Madrid"
     - cron: "0,20,40 0 * * *"
       timezone: "Europe/Madrid"
+    - cron: "0 1 * * *"
+      timezone: "Europe/Madrid"
   workflow_dispatch:
 
 permissions:
