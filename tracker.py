@@ -146,7 +146,14 @@ def save_state(path: Path, listings: list[Listing]) -> None:
 
 
 def send_telegram(listings: list[Listing], token: str, chat_id: str) -> None:
-    lines = ["🏃 Barcelona half-marathon bib available!", ""]
+    if not listings:
+        lines = [
+            "🏃 Barcelona half-marathon bib check",
+            "No bibs are currently available.",
+            MARKETPLACE_URL,
+        ]
+    else:
+        lines = ["🏃 Barcelona half-marathon bib available!", ""]
     for listing in listings:
         lines.extend(
             [
@@ -186,6 +193,13 @@ def main() -> int:
         print(f"Found {len(listings)} listing(s); {len(new_listings)} new.")
 
         if not new_listings:
+            if os.environ.get("TELEGRAM_NOTIFY_EMPTY", "").lower() == "true":
+                token = os.environ.get("TELEGRAM_BOT_TOKEN")
+                chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+                if not token or not chat_id:
+                    raise RuntimeError("Telegram test notification requested, but secrets are not configured")
+                send_telegram([], token, chat_id)
+                print("Telegram test notification sent.")
             save_state(args.state, listings)
             return 0
         if args.dry_run:
