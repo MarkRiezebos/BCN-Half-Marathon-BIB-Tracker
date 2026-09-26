@@ -40,6 +40,7 @@ class MarketplaceParser(HTMLParser):
         super().__init__()
         self.in_marketplace = False
         self.table_depth = 0
+        self.table_found = False
         self.current_row: Optional[list[str]] = None
         self.current_link: Optional[str] = None
         self.current_cell: list[str] = []
@@ -53,6 +54,7 @@ class MarketplaceParser(HTMLParser):
         if tag == "table" and "table-listados" in classes:
             self.in_marketplace = True
             self.table_depth = 1
+            self.table_found = True
             return
         if not self.in_marketplace:
             return
@@ -107,6 +109,13 @@ def fetch_marketplace(url: str) -> str:
 def parse_listings(html: str, page_url: str = MARKETPLACE_URL) -> list[Listing]:
     parser = MarketplaceParser()
     parser.feed(html)
+    if not parser.table_found:
+        raise RuntimeError("Marketplace table not found; the page structure may have changed")
+
+    header_rows = [cells for cells, _ in parser.rows if cells and cells[0].lower() in {"ref.", "ref"}]
+    if not header_rows or not {"fee", "amount"}.issubset({cell.lower() for cell in header_rows[0]}):
+        raise RuntimeError("Marketplace table headers not recognized; the page structure may have changed")
+
     listings: list[Listing] = []
     for cells, row_url in parser.rows:
         # Header rows are excluded by requiring the three identifying columns.
