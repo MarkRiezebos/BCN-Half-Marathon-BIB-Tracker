@@ -2,8 +2,12 @@ name: Check bib marketplace
 
 on:
   schedule:
-    # Temporary diagnostic: plain UTC schedule, without timezone handling.
-    - cron: "7,27,47 * * * *"
+    - cron: "7,27,47 8-23 * * *"
+      timezone: "Europe/Madrid"
+    - cron: "7,27,47 0 * * *"
+      timezone: "Europe/Madrid"
+    - cron: "7 1 * * *"
+      timezone: "Europe/Madrid"
   workflow_dispatch:
 
 permissions:
