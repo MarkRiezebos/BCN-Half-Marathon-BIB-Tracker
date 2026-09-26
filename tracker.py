@@ -24,6 +24,10 @@ MARKETPLACE_URL = (
 DEFAULT_STATE_PATH = Path("state.json")
 
 
+class MarketplaceStructureError(RuntimeError):
+    """Raised when the marketplace page no longer has the expected structure."""
+
+
 @dataclass(frozen=True)
 class Listing:
     reference: str
@@ -110,11 +114,13 @@ def parse_listings(html: str, page_url: str = MARKETPLACE_URL) -> list[Listing]:
     parser = MarketplaceParser()
     parser.feed(html)
     if not parser.table_found:
-        raise RuntimeError("Marketplace table not found; the page structure may have changed")
+        raise MarketplaceStructureError("Marketplace table not found; the page structure may have changed")
 
     header_rows = [cells for cells, _ in parser.rows if cells and cells[0].lower() in {"ref.", "ref"}]
     if not header_rows or not {"fee", "amount"}.issubset({cell.lower() for cell in header_rows[0]}):
-        raise RuntimeError("Marketplace table headers not recognized; the page structure may have changed")
+        raise MarketplaceStructureError(
+            "Marketplace table headers not recognized; the page structure may have changed"
+        )
 
     listings: list[Listing] = []
     for cells, row_url in parser.rows:
@@ -154,18 +160,8 @@ def save_state(path: Path, listings: list[Listing]) -> None:
     path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 
-def send_telegram(listings: list[Listing], token: str, chat_id: str) -> None:
-    lines = ["🏃 Barcelona half-marathon bib available!", ""]
-    for listing in listings:
-        lines.extend(
-            [
-                f"Ref: {listing.reference}",
-                f"Fee: {listing.fee} | Amount: {listing.amount}",
-                listing.url,
-                "",
-            ]
-        )
-    payload = urlencode({"chat_id": chat_id, "text": "\n".join(lines)}).encode()
+def send_telegram_message(text: str, token: str, chat_id: str) -> None:
+    payload = urlencode({"chat_id": chat_id, "text": text}).encode()
     request = Request(
         f"https://api.telegram.org/bot{token}/sendMessage",
         data=payload,
@@ -179,6 +175,20 @@ def send_telegram(listings: list[Listing], token: str, chat_id: str) -> None:
             raise RuntimeError("Telegram rejected the notification")
     except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as error:
         raise RuntimeError(f"Telegram notification failed: {type(error).__name__}") from error
+
+
+def send_telegram(listings: list[Listing], token: str, chat_id: str) -> None:
+    lines = ["🏃 Barcelona half-marathon bib available!", ""]
+    for listing in listings:
+        lines.extend(
+            [
+                f"Ref: {listing.reference}",
+                f"Fee: {listing.fee} | Amount: {listing.amount}",
+                listing.url,
+                "",
+            ]
+        )
+    send_telegram_message("\n".join(lines), token, chat_id)
 
 
 def main() -> int:
@@ -209,6 +219,23 @@ def main() -> int:
         save_state(args.state, listings)
         print("Telegram notification sent.")
         return 0
+    except MarketplaceStructureError as error:
+        token = os.environ.get("TELEGRAM_BOT_TOKEN")
+        chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+        if token and chat_id:
+            try:
+                send_telegram_message(
+                    "⚠️ BCN bib tracker needs attention.\n"
+                    f"{error}\n"
+                    f"Marketplace: {MARKETPLACE_URL}",
+                    token,
+                    chat_id,
+                )
+                print("Telegram structure-change warning sent.")
+            except RuntimeError as notification_error:
+                print(f"Could not send Telegram warning: {notification_error}", file=sys.stderr)
+        print(str(error), file=sys.stderr)
+        return 1
     except (HTTPError, URLError, TimeoutError) as error:
         print(f"Marketplace check failed: {type(error).__name__}", file=sys.stderr)
         return 1

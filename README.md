@@ -10,6 +10,7 @@ python3 tracker.py --dry-run
 
 The checker uses the marketplace's server-rendered availability table and does not attempt to log in, solve CAPTCHA challenges, or purchase a bib.
 It fails visibly if the expected marketplace table or its headers disappear, rather than treating a changed page as an empty marketplace.
+It also sends a Telegram warning when that structural check fails, so the parser can be updated if RPM changes the page.
 
 ## GitHub Actions setup
 
