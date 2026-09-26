@@ -2,7 +2,10 @@ name: Check bib marketplace
 
 on:
   schedule:
-    - cron: "0 6 * * *"
+    - cron: "0,20,40 8-23 * * *"
+      timezone: "Europe/Madrid"
+    - cron: "0,20,40 0 * * *"
+      timezone: "Europe/Madrid"
   workflow_dispatch:
 
 permissions:
