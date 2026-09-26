@@ -21,4 +21,4 @@ It also sends a Telegram warning when that structural check fails, so the parser
    - `TELEGRAM_CHAT_ID`
 4. Run **Check bib marketplace** manually once from the Actions tab.
 
-The scheduled check runs every 15 minutes from 08:07 through 00:52, plus one final check at 01:07, in the `Europe/Madrid` timezone. The minutes are offset from the start of the hour to reduce GitHub scheduling congestion. GitHub may still start scheduled workflows a few minutes late. The workflow commits only the current listing IDs to `state.json`, so an unchanged listing does not repeatedly notify you.
+The scheduled check runs every 15 minutes, around the clock, at `:07`, `:22`, `:37`, and `:52` in the `Europe/Madrid` timezone. The minutes are offset from the start of the hour to reduce GitHub scheduling congestion. GitHub may still start scheduled workflows a few minutes late. The workflow commits only the current listing IDs to `state.json`, so an unchanged listing does not repeatedly notify you.
