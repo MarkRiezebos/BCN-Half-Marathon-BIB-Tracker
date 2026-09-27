@@ -21,4 +21,4 @@ It also sends a Telegram warning when that structural check fails, so the parser
    - `TELEGRAM_CHAT_ID`
 4. Run **Check bib marketplace** manually once from the Actions tab.
 
-The workflow is triggered externally by cron-job.org every 15 minutes, around the clock, at `:07`, `:22`, `:37`, and `:52` in the `Europe/Madrid` timezone. It calls GitHub's `workflow_dispatch` API, because GitHub's native scheduled trigger has proven unreliable for this repository. The workflow commits only the current listing IDs to `state.json`, so an unchanged listing does not repeatedly notify you.
+The workflow is triggered externally by cron-job.org every 15 minutes, around the clock, at `:00`, `:15`, `:30`, and `:45` in the `Europe/Madrid` timezone. It calls GitHub's `workflow_dispatch` API, because GitHub's native scheduled trigger has proven unreliable for this repository. The workflow commits only the current listing IDs to `state.json`, so an unchanged listing does not repeatedly notify you.
